@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spoor</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <main class="popup stack">
+      <header class="row">
+        <span class="brand">Spoor</span>
+        <span class="spacer"></span>
+        <span id="state" class="pill off"><span class="dot"></span><span id="state-text">…</span></span>
+      </header>
+
+      <section class="panel stack" id="site-panel">
+        <div class="row">
+          <div>
+            <div class="eyebrow">This site</div>
+            <div id="site" class="site">—</div>
+          </div>
+          <span class="spacer"></span>
+          <button id="site-toggle" hidden></button>
+        </div>
+      </section>
+
+      <section class="counters">
+        <div>
+          <div id="count-today" class="big">0</div>
+          <div class="eyebrow">Today</div>
+        </div>
+        <div>
+          <div id="count-total" class="big">0</div>
+          <div class="eyebrow">Stored</div>
+        </div>
+        <div>
+          <div id="count-unsynced" class="big">0</div>
+          <div class="eyebrow">To sync</div>
+        </div>
+      </section>
+
+      <section class="stack" id="pause-panel">
+        <div class="muted small" id="paused-text"></div>
+        <div id="pause-buttons" class="stack">
+          <div class="eyebrow">Pause recording</div>
+          <div class="row">
+            <button data-pause="15">15 min</button>
+            <button data-pause="60">1 hour</button>
+            <button data-pause="forever">No limit</button>
+          </div>
+        </div>
+        <button id="resume" class="primary" hidden>Resume recording</button>
+      </section>
+
+      <section class="row small">
+        <span id="bridge" class="pill off">Bridge: …</span>
+      </section>
+
+      <footer class="row">
+        <button id="open-dashboard" class="primary">Dashboard</button>
+        <button id="open-options">Settings</button>
+      </footer>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

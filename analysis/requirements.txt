@@ -1,0 +1,4 @@
+# Optional: only needed to render the process map with pm4py.
+# Without it, process_map.py prints transitions and writes a Graphviz .dot file.
+pm4py>=2.7
+pandas>=2.0

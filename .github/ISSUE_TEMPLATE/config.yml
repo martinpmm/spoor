@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security or privacy problem
+    url: https://github.com/martinpmm/spoor/security/advisories/new
+    about: A sensitive field that gets recorded, data leaving the machine, or another way to reach your data. Report it privately.

@@ -1,0 +1,24 @@
+name: Feature request
+description: Suggest an improvement.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Spoor stays local only: no servers, no telemetry, no network requests. Ideas that need data to leave the machine are out of scope.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to find out or do?
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: Proposal
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy impact
+      description: Would this record anything new, or show more to Claude?
