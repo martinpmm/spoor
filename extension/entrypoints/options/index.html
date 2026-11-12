@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="manifest.open_in_tab" content="true" />
+    <title>Spoor settings</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="glow">
+    <main class="page stack">
+      <nav class="topbar">
+        <span class="brand">Spoor</span>
+        <span class="spacer"></span>
+        <a class="btn" href="/dashboard.html">Dashboard</a>
+        <a class="btn" href="/onboarding.html">What Spoor records</a>
+      </nav>
+      <header class="hero">
+        <div class="eyebrow">Settings</div>
+        <h1>Spoor settings</h1>
+      </header>
+
+      <section class="panel stack" id="bridge-panel">
+        <div class="row">
+          <h2>Bridge</h2>
+          <span class="spacer"></span>
+          <span id="bridge-pill" class="pill off">…</span>
+        </div>
+        <p id="bridge-detail" class="muted"></p>
+        <div id="bridge-setup" class="stack" hidden>
+          <p>
+            The bridge mirrors your events into <code>~/.spoor/events.db</code> so Claude can read them
+            through the local MCP server. Until it is installed, everything stays in the browser and is sent
+            later; nothing is lost.
+          </p>
+          <ol>
+            <li>
+              In a terminal, at the root of the Spoor repository:
+              <code>npm install &amp;&amp; npm run build</code>
+            </li>
+            <li>Then: <code>npm run register</code></li>
+            <li>Click “Reconnect”.</li>
+          </ol>
+          <p class="small muted">
+            Extension ID: <code id="ext-id"></code> (the register script allows only this ID).
+          </p>
+        </div>
+        <div class="row">
+          <button id="reconnect">Reconnect</button>
+          <button id="sync-now">Sync now</button>
+        </div>
+      </section>
+
+      <section class="panel stack">
+        <h2>Which sites are recorded</h2>
+        <label class="check"
+          ><input type="radio" name="scope" value="all" />
+          <span><strong>All sites</strong> (default)</span></label
+        >
+        <label class="check"
+          ><input type="radio" name="scope" value="exclude" />
+          <span><strong>All sites except</strong> the exclude list</span></label
+        >
+        <label class="check"
+          ><input type="radio" name="scope" value="allow" />
+          <span><strong>Only</strong> the sites in the allowlist</span></label
+        >
+        <div class="two">
+          <div>
+            <h3>Exclude list</h3>
+            <textarea id="exclude" placeholder="one domain per line, e.g. mail.example.com"></textarea>
+          </div>
+          <div>
+            <h3>Allowlist</h3>
+            <textarea id="allow" placeholder="one domain per line, e.g. erp.example.com"></textarea>
+          </div>
+        </div>
+        <p class="small muted">Domains also match their subdomains. Incognito windows are never recorded.</p>
+      </section>
+
+      <section class="panel stack">
+        <h2>What is captured</h2>
+        <label class="check"
+          ><input type="checkbox" id="captureValues" />
+          <span
+            ><strong>Record typed values</strong><br /><span class="muted small"
+              >The final value of each field and clipboard text. When off, only lengths are stored. Password,
+              card and one time code fields are never recorded either way.</span
+            ></span
+          ></label
+        >
+        <label class="check"
+          ><input type="checkbox" id="aiPromptText" />
+          <span
+            ><strong>Record AI prompt text</strong><br /><span class="muted small"
+              >Text of prompts sent to ChatGPT, Claude, Gemini and Copilot. When off, only lengths are
+              stored.</span
+            ></span
+          ></label
+        >
+        <label class="check"
+          ><input type="checkbox" id="claudeReadsValues" />
+          <span
+            ><strong>Let Claude read typed values</strong><br /><span class="muted small"
+              >When you ask Claude a question, tool results become part of that conversation. When off, the
+              MCP tools return lengths instead of typed values, clipboard text and prompt text.</span
+            ></span
+          ></label
+        >
+      </section>
+
+      <section class="panel stack">
+        <h2>URL templates</h2>
+        <p class="muted small">
+          Query strings are dropped. Keep the keys that define the screen, one site per line:
+          <code>app.example.com: tab, view</code>
+        </p>
+        <textarea id="keepQueryKeys"></textarea>
+      </section>
+
+      <section class="panel stack">
+        <h2>Retention</h2>
+        <div class="row">
+          <label for="retention">Delete events older than</label>
+          <input type="number" id="retention" min="1" max="3650" style="width: 90px" />
+          <span>days (in the browser and in the SQLite file)</span>
+        </div>
+      </section>
+
+      <div class="row">
+        <button id="save" class="primary">Save settings</button>
+        <span id="saved" class="muted small"></span>
+      </div>
+
+      <section class="panel raised stack">
+        <h2>Delete everything</h2>
+        <p class="muted">Removes every event from the browser and from <code>~/.spoor/events.db</code>.</p>
+        <div><button id="delete-all" class="danger">Delete all data</button></div>
+      </section>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

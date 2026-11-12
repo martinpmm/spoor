@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spoor dashboard</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="glow">
+    <main class="page stack">
+      <nav class="topbar">
+        <span class="brand">Spoor</span>
+        <span id="rec" class="pill off"><span class="dot"></span><span id="rec-text">…</span></span>
+        <span id="bridge" class="pill off small">…</span>
+        <span class="spacer"></span>
+        <button id="sync-now" title="Send waiting events to the bridge now">Sync</button>
+        <a class="btn" href="/options.html">Settings</a>
+      </nav>
+      <header class="hero">
+        <div class="eyebrow">Dashboard · On this computer</div>
+        <h1>How you work in the browser</h1>
+      </header>
+
+      <section class="panel raised row toolbar">
+        <label class="row">From <input type="date" id="from" /></label>
+        <label class="row">To <input type="date" id="to" /></label>
+        <button data-range="0">Today</button>
+        <button data-range="6">7 days</button>
+        <button data-range="29">30 days</button>
+        <span class="spacer"></span>
+        <button id="export-jsonl">Export JSONL</button>
+        <button id="export-csv">Export CSV</button>
+        <button id="copy-summary" class="primary">Copy summary for Claude</button>
+      </section>
+
+      <div id="ai-warnings" class="stack"></div>
+
+      <section class="cards">
+        <div class="panel">
+          <div class="eyebrow">Active time</div>
+          <div id="stat-active" class="big">—</div>
+        </div>
+        <div class="panel">
+          <div class="eyebrow">Sessions</div>
+          <div id="stat-sessions" class="big">—</div>
+        </div>
+        <div class="panel">
+          <div class="eyebrow">Events</div>
+          <div id="stat-events" class="big">—</div>
+        </div>
+        <div class="panel">
+          <div class="eyebrow">Sites</div>
+          <div id="stat-sites" class="big">—</div>
+        </div>
+      </section>
+
+      <section class="panel stack">
+        <h2>Time per day</h2>
+        <div id="per-day" class="per-day"></div>
+      </section>
+
+      <section class="panel stack">
+        <div class="row">
+          <h2>Timeline</h2>
+          <span class="spacer"></span>
+          <select id="timeline-day"></select>
+        </div>
+        <div id="timeline"></div>
+        <div id="timeline-legend" class="legend small"></div>
+      </section>
+
+      <div class="grid2">
+        <section class="panel stack">
+          <h2>Top sites</h2>
+          <table id="top-sites"></table>
+        </section>
+        <section class="panel stack">
+          <div class="row">
+            <h2>AI usage</h2>
+          </div>
+          <div id="ai-summary"></div>
+          <div id="ai-prompts" class="stack small"></div>
+        </section>
+      </div>
+
+      <section class="panel stack">
+        <div class="row">
+          <h2>Most repeated sequences</h2>
+          <span class="spacer"></span>
+          <label class="row small"
+            >Steps
+            <select id="seq-length">
+              <option>3</option>
+              <option selected>4</option>
+              <option>5</option>
+              <option>6</option>
+            </select></label
+          >
+        </div>
+        <p class="muted small">
+          Activity = site + screen · action "label". These are the workflows Claude will look at first.
+        </p>
+        <div id="sequences" class="stack"></div>
+      </section>
+
+      <section class="panel stack">
+        <h2>Latest events</h2>
+        <div class="scroll"><table id="events"></table></div>
+      </section>
+
+      <section class="panel raised row">
+        <div>
+          <h2>Delete everything</h2>
+          <p class="muted small">Removes every event from the browser and from the SQLite file.</p>
+        </div>
+        <span class="spacer"></span>
+        <button id="delete-all" class="danger">Delete all data</button>
+      </section>
+      <footer class="site-footer small muted">
+        Built by Mintii Labs ·
+        <a href="https://mintiilabs.com/waitlist" target="_blank" rel="noopener noreferrer"
+          >Join the waitlist</a
+        >
+      </footer>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

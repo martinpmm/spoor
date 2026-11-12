@@ -1,0 +1,250 @@
+#!/usr/bin/env node
+/**
+ * Installs (or removes) the native messaging host manifest for Chrome, Edge, Brave and Chromium
+ * on macOS, Linux and Windows, with the Spoor extension origin as the only allowed caller.
+ *
+ *   npm run register                       install for every detected browser
+ *   npm run register -- --uninstall        remove
+ *   npm run register -- --extension-id X   allow another extension id (dev builds)
+ *   npm run register -- --data-dir DIR     store the database somewhere else than ~/.spoor
+ *   npm run register -- --target-dir DIR   write the manifest into DIR only (tests, custom profiles)
+ *   npm run register -- --dry-run          print what would be done
+ */
+import { execFileSync } from 'node:child_process';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { dataDir, EXTENSION_ID, HOST_NAME } from './constants.js';
+
+interface Args {
+  uninstall: boolean;
+  dryRun: boolean;
+  extensionIds: string[];
+  dataDir?: string;
+  targetDirs: string[];
+  browsers?: string[];
+}
+
+function parseArgs(argv: string[]): Args {
+  const a: Args = { uninstall: false, dryRun: false, extensionIds: [], targetDirs: [] };
+  for (let i = 0; i < argv.length; i++) {
+    const k = argv[i];
+    const next = () => {
+      const v = argv[++i];
+      if (!v) throw new Error(`${k} needs a value`);
+      return v;
+    };
+    if (k === '--uninstall') a.uninstall = true;
+    else if (k === '--dry-run') a.dryRun = true;
+    else if (k === '--extension-id') a.extensionIds.push(next());
+    else if (k === '--data-dir') a.dataDir = path.resolve(next());
+    else if (k === '--target-dir') a.targetDirs.push(path.resolve(next()));
+    else if (k === '--browsers')
+      a.browsers = next()
+        .split(',')
+        .map((s) => s.trim().toLowerCase());
+    else if (k === '--help' || k === '-h') {
+      console.log(fs.readFileSync(fileURLToPath(import.meta.url), 'utf8').split('*/')[0]);
+      process.exit(0);
+    } else throw new Error(`unknown argument ${k}`);
+  }
+  return a;
+}
+
+interface BrowserTarget {
+  browser: string;
+  /** Folder where the manifest goes (macOS, Linux). */
+  dir?: string;
+  /** Registry key (Windows). */
+  regKey?: string;
+  /** Folder whose presence means the browser is installed. */
+  detect?: string;
+}
+
+export function browserTargets(
+  platform: NodeJS.Platform = process.platform,
+  home = os.homedir(),
+  env: NodeJS.ProcessEnv = process.env,
+): BrowserTarget[] {
+  if (platform === 'darwin') {
+    const base = path.join(home, 'Library', 'Application Support');
+    return [
+      ['chrome', 'Google/Chrome'],
+      ['chrome-beta', 'Google/Chrome Beta'],
+      ['chromium', 'Chromium'],
+      ['edge', 'Microsoft Edge'],
+      ['brave', 'BraveSoftware/Brave-Browser'],
+    ].map(([browser, p]) => ({
+      browser,
+      dir: path.join(base, p, 'NativeMessagingHosts'),
+      detect: path.join(base, p),
+    }));
+  }
+  if (platform === 'win32') {
+    return [
+      ['chrome', 'Software\\Google\\Chrome'],
+      ['chromium', 'Software\\Chromium'],
+      ['edge', 'Software\\Microsoft\\Edge'],
+      ['brave', 'Software\\BraveSoftware\\Brave-Browser'],
+    ].map(([browser, k]) => ({ browser, regKey: `HKCU\\${k}\\NativeMessagingHosts\\${HOST_NAME}` }));
+  }
+  const base = env.XDG_CONFIG_HOME || path.join(home, '.config');
+  return [
+    ['chrome', 'google-chrome'],
+    ['chrome-beta', 'google-chrome-beta'],
+    ['chrome-dev', 'google-chrome-unstable'],
+    ['chromium', 'chromium'],
+    ['edge', 'microsoft-edge'],
+    ['brave', 'BraveSoftware/Brave-Browser'],
+  ].map(([browser, p]) => ({
+    browser,
+    dir: path.join(base, p, 'NativeMessagingHosts'),
+    detect: path.join(base, p),
+  }));
+}
+
+export function hostManifest(hostPath: string, extensionIds: string[]) {
+  return {
+    name: HOST_NAME,
+    description: 'Spoor bridge: stores browser activity events in a local SQLite file',
+    path: hostPath,
+    type: 'stdio',
+    allowed_origins: [...new Set(extensionIds)].map((id) => `chrome-extension://${id}/`),
+  };
+}
+
+function bridgeRoot(): string {
+  // dist/register.js -> bridge/
+  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+}
+
+function writeLauncher(
+  binDir: string,
+  hostJs: string,
+  spoorHome: string | undefined,
+  dryRun: boolean,
+): string {
+  const node = process.execPath;
+  if (process.platform === 'win32') {
+    const file = path.join(binDir, 'spoor-host.bat');
+    const env = spoorHome ? `set "SPOOR_HOME=${spoorHome}"\r\n` : '';
+    const body = `@echo off\r\n${env}"${node}" --no-warnings "${hostJs}" %*\r\n`;
+    if (!dryRun) fs.writeFileSync(file, body);
+    return file;
+  }
+  const file = path.join(binDir, 'spoor-host');
+  const q = (s: string) => `'${s.replace(/'/g, `'\\''`)}'`;
+  const env = spoorHome ? `export SPOOR_HOME=${q(spoorHome)}\n` : '';
+  const body = `#!/bin/sh\n# Generated by spoor register. Chrome starts this through native messaging.\n${env}exec ${q(node)} --no-warnings ${q(hostJs)} "$@"\n`;
+  if (!dryRun) {
+    fs.writeFileSync(file, body, { mode: 0o700 });
+    fs.chmodSync(file, 0o700);
+  }
+  return file;
+}
+
+function main(): void {
+  const args = parseArgs(process.argv.slice(2));
+  const ids = [EXTENSION_ID, ...args.extensionIds];
+  const home = args.dataDir ?? dataDir();
+  const root = bridgeRoot();
+  const hostJs = path.join(root, 'dist', 'host.js');
+  const mcpJs = path.join(root, 'dist', 'mcp.js');
+  const say = (s: string) => console.log(s);
+
+  let targets: BrowserTarget[] = browserTargets();
+  if (args.browsers) targets = targets.filter((t) => args.browsers!.includes(t.browser));
+  if (args.targetDirs.length) targets = args.targetDirs.map((dir) => ({ browser: 'custom', dir }));
+
+  if (args.uninstall) {
+    for (const t of targets) {
+      if (t.dir) {
+        const f = path.join(t.dir, `${HOST_NAME}.json`);
+        if (fs.existsSync(f)) {
+          if (!args.dryRun) fs.rmSync(f);
+          say(`removed ${f}`);
+        }
+      } else if (t.regKey) {
+        try {
+          if (!args.dryRun) execFileSync('reg', ['delete', t.regKey, '/f'], { stdio: 'ignore' });
+          say(`removed registry key ${t.regKey}`);
+        } catch {}
+      }
+    }
+    say('Native host unregistered. Your data in ' + home + ' was left untouched.');
+    return;
+  }
+
+  if (!fs.existsSync(hostJs)) {
+    console.error(`Cannot find ${hostJs}. Run "npm run build" first.`);
+    process.exit(1);
+  }
+
+  const binDir = path.join(home, 'bin');
+  if (!args.dryRun) fs.mkdirSync(binDir, { recursive: true, mode: 0o700 });
+  try {
+    if (!args.dryRun) fs.chmodSync(home, 0o700);
+  } catch {}
+  const launcher = writeLauncher(binDir, hostJs, args.dataDir, args.dryRun);
+  const manifest = hostManifest(launcher, ids);
+  const manifestJson = JSON.stringify(manifest, null, 2) + '\n';
+  say(`Launcher: ${launcher}`);
+
+  const written: string[] = [];
+  if (process.platform === 'win32' && !args.targetDirs.length) {
+    const file = path.join(home, `${HOST_NAME}.json`);
+    if (!args.dryRun) fs.writeFileSync(file, manifestJson);
+    for (const t of targets) {
+      try {
+        if (!args.dryRun)
+          execFileSync('reg', ['add', t.regKey!, '/ve', '/t', 'REG_SZ', '/d', file, '/f'], {
+            stdio: 'ignore',
+          });
+        written.push(`${t.browser}: ${t.regKey}`);
+      } catch (err) {
+        say(`could not write ${t.regKey}: ${(err as Error).message}`);
+      }
+    }
+    say(`Manifest: ${file}`);
+  } else {
+    let chosen = targets.filter((t) => !t.detect || fs.existsSync(t.detect));
+    if (!chosen.length) {
+      say('No supported browser profile folder found; registering for Google Chrome and Chromium anyway.');
+      chosen = targets.filter(
+        (t) => t.browser === 'chrome' || t.browser === 'chromium' || t.browser === 'custom',
+      );
+    }
+    for (const t of chosen) {
+      const file = path.join(t.dir!, `${HOST_NAME}.json`);
+      if (!args.dryRun) {
+        fs.mkdirSync(t.dir!, { recursive: true });
+        fs.writeFileSync(file, manifestJson);
+      }
+      written.push(`${t.browser}: ${file}`);
+    }
+  }
+
+  say('\nNative messaging host registered:');
+  for (const w of written) say(`  ${w}`);
+  say(`\nAllowed extension id(s): ${ids.join(', ')}`);
+  say(`Database: ${path.join(home, 'events.db')}`);
+  say('\nNext: load the extension unpacked (extension/dist/chrome-mv3) and open its options page;');
+  say('it shows "Bridge connected" after the first batch is stored.\n');
+  say('Claude Desktop (claude_desktop_config.json) or Claude Code (.mcp.json):');
+  const mcpConfig: Record<string, unknown> = { command: process.execPath, args: ['--no-warnings', mcpJs] };
+  if (args.dataDir) mcpConfig.env = { SPOOR_HOME: args.dataDir };
+  say(JSON.stringify({ mcpServers: { spoor: mcpConfig } }, null, 2));
+  say('\nOr with the Claude Code CLI:');
+  say(`  claude mcp add spoor --scope user -- "${process.execPath}" --no-warnings "${mcpJs}"`);
+}
+
+const isMain = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isMain) {
+  try {
+    main();
+  } catch (err) {
+    console.error((err as Error).message);
+    process.exit(1);
+  }
+}

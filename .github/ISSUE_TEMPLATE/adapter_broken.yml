@@ -1,0 +1,32 @@
+name: AI adapter broken
+description: Prompts on ChatGPT, Claude, Gemini or Copilot are no longer recorded, or the dashboard shows an adapter warning.
+labels: [adapter]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        These sites change their markup often. "How to fix an adapter" in CONTRIBUTING.md explains the fix, which is usually a one-line selector change. Pull requests are very welcome.
+  - type: dropdown
+    id: site
+    attributes:
+      label: Site
+      options: [chatgpt.com, claude.ai, gemini.google.com, copilot.microsoft.com]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What you see
+      description: Is there a dashboard warning? Are prompts missing or counted twice?
+    validations:
+      required: true
+  - type: textarea
+    id: dom
+    attributes:
+      label: Prompt box and send button markup
+      description: In DevTools, right click the prompt box and the send button → Copy → Copy outerHTML. Remove any conversation text first.
+      render: html
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version

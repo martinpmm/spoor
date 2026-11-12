@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Welcome to Spoor</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body class="glow">
+    <main class="page stack">
+      <nav class="topbar">
+        <span class="brand">Spoor</span>
+        <span class="spacer"></span>
+        <span class="pill rec"><span class="dot"></span>REC</span>
+      </nav>
+      <header class="hero">
+        <div class="eyebrow">Welcome · Local only</div>
+        <h1>Spoor is now recording this browser</h1>
+        <p class="lead">
+          Spoor records how work happens in this browser so you can ask your own Claude which workflows repeat
+          and which ones are worth automating. Everything stays on this computer.
+        </p>
+      </header>
+
+      <section class="notice accent">
+        <strong>Use rule.</strong> Spoor records everything a person does in the browser, including what they
+        type. Install it only on your own browser, or with the informed consent of the person who uses that
+        browser.
+      </section>
+
+      <section class="panel stack">
+        <div class="eyebrow">01 · Recorded</div>
+        <h2>What is recorded</h2>
+        <ul>
+          <li>
+            Sites and screens you visit, with time spent (addresses are turned into templates such as
+            <code>/invoices/{id}/edit</code>; query strings are dropped).
+          </li>
+          <li>
+            Clicks, form submits, file uploads (file names only), copy and paste (first 200 characters).
+          </li>
+          <li>
+            <strong>The final value you type into each field</strong> (up to 1000 characters), once per field,
+            not each keystroke.
+          </li>
+          <li>Prompts you send to ChatGPT, Claude, Gemini and Copilot, with their text.</li>
+          <li>Focus, idle and active periods, grouped into sessions (a new one after 5 minutes idle).</li>
+        </ul>
+      </section>
+
+      <section class="panel stack">
+        <div class="eyebrow">02 · Never recorded</div>
+        <h2>What is never recorded</h2>
+        <ul>
+          <li>Password fields, and fields marked as current or new password, card data or one time code.</li>
+          <li>
+            Hidden inputs, and fields whose name or label says password, passcode, PIN, CVV, secret, token,
+            contraseña, clave…
+          </li>
+          <li>Anything in incognito windows.</li>
+          <li>Screenshots or page content.</li>
+        </ul>
+        <p class="muted">
+          Careful: a password typed into a normal field (for example a user name box) or pasted from a
+          password manager into one is recorded like any other text. Use pause or the exclude list on
+          sensitive sites.
+        </p>
+      </section>
+
+      <section class="panel stack">
+        <div class="eyebrow">03 · Storage</div>
+        <h2>Where the data lives</h2>
+        <ul>
+          <li>In this browser (IndexedDB), for the dashboard.</li>
+          <li>
+            If you install the bridge: in <code>~/.spoor/events.db</code>, readable only by your user account.
+          </li>
+          <li>Spoor makes no network requests. There is no server, no account and no telemetry.</li>
+          <li>
+            When you ask Claude about your data, the results of the tools it calls become part of that
+            conversation. Turn off “Let Claude read typed values” in settings to share only lengths.
+          </li>
+          <li>
+            Events older than 30 days are deleted automatically (configurable). One button deletes everything.
+          </li>
+        </ul>
+      </section>
+
+      <section class="panel stack">
+        <div class="eyebrow">04 · Controls</div>
+        <h2>Your controls</h2>
+        <ul>
+          <li>The toolbar badge always shows <strong>REC</strong> or <strong>OFF</strong>.</li>
+          <li>
+            The toolbar button pauses for 15 minutes, 1 hour or until you resume, and excludes the current
+            site.
+          </li>
+          <li>
+            Settings: all sites, all sites except a list, or only listed sites; value capture; retention.
+          </li>
+        </ul>
+        <div class="row">
+          <a class="btn primary" href="/options.html">Open settings</a>
+          <a class="btn" href="/dashboard.html">Open dashboard</a>
+        </div>
+      </section>
+
+      <section class="panel stack">
+        <div class="eyebrow">05 · Optional</div>
+        <h2>Connect Claude</h2>
+        <ol>
+          <li>
+            At the root of the Spoor repository: <code>npm install &amp;&amp; npm run build</code>, then
+            <code>npm run register</code>.
+          </li>
+          <li>
+            Add the <code>spoor</code> MCP server to Claude Desktop or Claude Code (the register script prints
+            the exact block).
+          </li>
+          <li>Ask: “What are my five most repeated workflows this week and how long does each take?”</li>
+        </ol>
+        <p class="small muted">Extension ID: <code id="ext-id"></code></p>
+      </section>
+      <footer class="site-footer small muted">
+        Built by Mintii Labs ·
+        <a href="https://mintiilabs.com/waitlist" target="_blank" rel="noopener noreferrer"
+          >Join the waitlist</a
+        >
+      </footer>
+    </main>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

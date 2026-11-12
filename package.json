@@ -1,0 +1,55 @@
+{
+  "name": "spoor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open source browser recorder for process discovery, local only, connected to Claude through a local MCP server.",
+  "license": "AGPL-3.0-only",
+  "workspaces": [
+    "extension",
+    "bridge"
+  ],
+  "engines": {
+    "node": ">=22.13"
+  },
+  "scripts": {
+    "build": "npm run build -w bridge && npm run build -w extension",
+    "test": "npm run test -w bridge && npm run test -w extension",
+    "test:e2e": "npm run build && npm run test:e2e -w extension",
+    "typecheck": "npm run typecheck -w bridge && npm run typecheck -w extension",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "register": "npm run register -w bridge --",
+    "zip": "npm run zip -w extension",
+    "fixture": "node fixtures/invoiceapp/server.mjs"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.14.0",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.72.2"
+  },
+  "overrides": {
+    "minimatch": "^11.0.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martinpmm/spoor.git"
+  },
+  "homepage": "https://github.com/martinpmm/spoor#readme",
+  "bugs": {
+    "url": "https://github.com/martinpmm/spoor/issues"
+  },
+  "keywords": [
+    "process-mining",
+    "process-discovery",
+    "browser-extension",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "automation",
+    "chrome-extension"
+  ]
+}

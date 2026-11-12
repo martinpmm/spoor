@@ -1,0 +1,43 @@
+{
+  "name": "@spoor/bridge",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Spoor bridge: native messaging host that writes events to SQLite, and a read only MCP server for Claude.",
+  "license": "AGPL-3.0-only",
+  "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
+  "bin": {
+    "spoor-host": "dist/host.js",
+    "spoor-mcp": "dist/mcp.js",
+    "spoor-register": "dist/register.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "register": "node --no-warnings dist/register.js",
+    "unregister": "node --no-warnings dist/register.js --uninstall",
+    "mcp": "node --no-warnings dist/mcp.js",
+    "inspect": "npx @modelcontextprotocol/inspector node --no-warnings dist/mcp.js",
+    "demo": "node --no-warnings dist/demo.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.2",
+    "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "vitest": "^5.1.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/martinpmm/spoor.git",
+    "directory": "bridge"
+  },
+  "homepage": "https://github.com/martinpmm/spoor#readme",
+  "bugs": {
+    "url": "https://github.com/martinpmm/spoor/issues"
+  }
+}
